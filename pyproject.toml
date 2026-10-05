@@ -1,0 +1,8 @@
+[project]
+name = "sovereignty-ai-gate"
+version = "0.1.0"
+description = "Sovereignty AI Gate"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
