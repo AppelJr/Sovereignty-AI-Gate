@@ -1,51 +1,73 @@
-"""Canonical payload representation at the RFC-0010 binding boundary."""
+"""Utility: canonical bytes serialization for deterministic hashing.
 
+All objects that enter the audit ledger or are signed must be
+serialized with `canonical_bytes()` to ensure byte-for-byte
+reproducibility across platforms.
+"""
 from __future__ import annotations
 
-from hashlib import sha3_512
 import json
-from typing import Any, Mapping
+import math
 import unicodedata
-
-from rfc0009 import ValidationError
-
-
-def _canonical_value(value: Any) -> Any:
-    if isinstance(value, Mapping):
-        if not all(isinstance(key, str) for key in value):
-            raise ValidationError("payload schema invalid")
-        return {
-            unicodedata.normalize("NFC", key): _canonical_value(item)
-            for key, item in value.items()
-        }
-    if isinstance(value, (list, tuple)):
-        return [_canonical_value(item) for item in value]
-    if isinstance(value, str):
-        return unicodedata.normalize("NFC", value)
-    return value
+from datetime import date, datetime, timezone
+from decimal import Decimal
+from typing import Any
 
 
-def validate_payload_schema(payload: Mapping[str, Any]) -> None:
-    """Confirm that a payload is structurally eligible for canonicalization."""
-    if not isinstance(payload, Mapping) or not payload:
-        raise ValidationError("payload schema invalid")
-    try:
-        json.dumps(_canonical_value(payload), allow_nan=False)
-    except (TypeError, ValueError) as exc:
-        raise ValidationError("payload schema invalid") from exc
+def canonical_bytes(value: Any) -> bytes:
+    """Serialize *value* to canonical UTF-8 JSON bytes.
 
-
-def canonical_bytes(payload: Mapping[str, Any]) -> bytes:
-    """Produce RFC-0003-compatible canonical JSON bytes."""
+    Rules:
+    - Keys are sorted lexicographically (recursive).
+    - No extra whitespace.
+    - Unicode strings are normalized to NFC.
+    - Datetimes are normalized to UTC ISO-8601 with trailing Z.
+    - NaN and infinity values are rejected.
+    - The result is UTF-8 encoded bytes.
+    """
+    normalized = _canonicalize(value)
     return json.dumps(
-        _canonical_value(payload),
-        allow_nan=False,
-        ensure_ascii=False,
-        separators=(",", ":"),
+        normalized,
         sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
     ).encode("utf-8")
 
 
-def canonical_hash(payload: Mapping[str, Any]) -> str:
-    """Derive a digest from a canonical payload representation."""
-    return sha3_512(canonical_bytes(payload)).hexdigest()
+def canonical_json(value: Any) -> str:
+    """Compatibility alias returning canonical UTF-8 JSON text."""
+    return canonical_bytes(value).decode("utf-8")
+
+
+def canonical_dict(value: Any) -> Any:
+    """Return a new object with dict keys sorted recursively."""
+    return _canonicalize(value)
+
+
+def _canonicalize(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {str(k): _canonicalize(v) for k, v in sorted(value.items(), key=lambda item: str(item[0]))}
+    if isinstance(value, list):
+        return [_canonicalize(item) for item in value]
+    if isinstance(value, tuple):
+        return [_canonicalize(item) for item in value]
+    if isinstance(value, str):
+        return unicodedata.normalize("NFC", value)
+    if isinstance(value, datetime):
+        dt = value
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Decimal):
+        if not value.is_finite():
+            raise ValueError("Non-finite decimal values are not allowed in canonical bytes")
+        return format(value.normalize(), "f")
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            raise ValueError("Non-finite float values are not allowed in canonical bytes")
+        return value
+    return value
