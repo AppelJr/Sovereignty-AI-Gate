@@ -1,3 +1,4 @@
+[![Python Tests](https://github.com/AppelJr/Sovereignty-AI-Gate/actions/workflows/tests.yml/badge.svg)](https://github.com/AppelJr/Sovereignty-AI-Gate/actions/workflows/tests.yml) [![Conformance Checks](https://github.com/AppelJr/Sovereignty-AI-Gate/actions/workflows/conformance.yml/badge.svg)](https://github.com/AppelJr/Sovereignty-AI-Gate/actions/workflows/conformance.yml)
 # Sovereignty-AI-Gate
 
 Imported from the suspended Appel420/Sovereignty-AI-Studio archive (commit 116bb2f8e36a47627667320bbc9e96f06345fe11).
