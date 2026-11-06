@@ -1,5 +1,5 @@
 TULIP REASONING TRACE CONTRACT
-Status: OWNER-ACCEPTED 2026-11-02 (Option B)
+Status: OWNER-ACCEPTED 2026-11-02 (Option B) + 2026-11-05 refinements
 Owner: Appel420
 Integrates with: LANE SPEC (Playground → Production), Decision Gate, Receipt Schema
 
@@ -27,6 +27,7 @@ CARD STRUCTURE (every gated action)
 	•	Discuss (neutral)
 	•	Risk / Reward / pro’s / con’s listed immediately above the buttons
 	•	Embedded smoke-test plan that will run only after Accept
+	•	Interactive controls allowed: checkboxes, multi-select, free-text adjustments, live previews
 4. Receipt (Beat 2 — emitted on any choice)
 Immutable line written into the thread:
 
@@ -43,6 +44,9 @@ HARD RULES
 	4.	Discuss opens the current thread as the working surface; the locked reasoning + receipt stay visible at the top.
 	5.	Any material change to the proposed action after Discuss requires a brand-new Tulip card with a new Tulip ID and new reasoning trace.
 	6.	Sandbox is disallowed. All test execution stays inside the defined lanes (Local → Playground → Smoke → Real-Prod-Live → Production).
+	7.	SCAR is pen-only: the ledger is strictly append-only. Once written, records are never edited or deleted. Chain must be verified before any read-remember operation.
+	8.	Tulip is adjustable: the card itself remains interactive (checkboxes, choices, free-text, live edits) until the owner seals a choice with Accept / Decline / Discuss. After sealing, that card freezes.
+	9.	Code must be fenced: every code block, patch, or executable snippet inside a Tulip card or reasoning trace MUST appear inside a proper language fence (```language … ```). Bare code is invalid.
 
 TWO-KEY MODEL (unchanged)
 	•	Key 1 (this card’s Accept) = stage advance only
@@ -51,10 +55,10 @@ TWO-KEY MODEL (unchanged)
 CREATOR ATTRIBUTION (5W1H + Merkle)
 	•	Who: Appel420 / DevAssist420 routing key
 	•	What: Reasoning Trace Card integrated into Tulip Decision Gate
-	•	When: 2026-11-02
+	•	When: 2026-11-02 (core) + 2026-11-05 (SCAR/Tulip/Code rules)
 	•	Where: Local artifacts only (no cloud)
 	•	Why: Make every gated decision correctable and auditable while keeping voice clean
-	•	How: Expandable on-screen trace + immutable receipt + two-key advance
+	•	How: Expandable on-screen trace + immutable receipt + two-key advance + interactive card surface
 
 SMOKE-TEST PLAN (runs only after Accept of this contract)
 	1.	Render a sample Tulip card containing a non-empty reasoning trace
@@ -77,3 +81,4 @@ Every Tulip card render and every choice MUST emit a ledger event via the existi
 
 Receipt line is also written immutably into the conversation thread.
 Retrieval: scan ledger for node=="TULIP" ordered by seq; verify chain continuity before any read-remember operation.
+SCAR remains pen-only under all conditions.
