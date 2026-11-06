@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DevAssist420 — Voice + Visual Code Interactive</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --green: #22c55e;
+    --red: #ef4444;
+    --blue: #3b82f6;
+    --amber: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 12px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 8px; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+  details.example {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  summary {
+    padding: 14px 16px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: "▸"; color: var(--muted); }
+  details[open] summary::after { content: "▾"; }
+  .body { padding: 0 16px 16px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tab {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  pre {
+    background: #020617;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .runtime { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+  .test-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .pass { background: #14532d; color: var(--green); }
+  .fail { background: #7f1d1d; color: var(--red); }
+  .pending { background: #78350f; color: var(--amber); }
+  button.action {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button.action:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .correct-box {
+    display: none;
+    margin-top: 10px;
+  }
+  .correct-box.visible { display: block; }
+  textarea.correct {
+    width: 100%;
+    min-height: 120px;
+    background: #020617;
+    color: var(--text);
+    border: 1px solid var(--amber);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+  }
+  .ssml { color: #a5b4fc; }
+  .json { color: #86efac; }
+  footer {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>DevAssist420 — Voice + Visual Code</h1>
+  <div class="meta">
+    Production interactive renderer · iPhone / Android / PC / Mac<br>
+    Real Pass/Fail · In-place correction · Copy corrected code on Fail<br>
+    SCAR pen-only · Code always fenced
+  </div>
+
+  <div id="root"></div>
+
+  <footer>
+    Tulip tulip-20261105-2120-e4f5a6b7 · Accept 2026-11-05 · artifacts/voice-visual-code-interactive.html
+  </footer>
+
+<script>
+const examples = [
+  {
+    id: "python",
+    language: "Python",
+    voice: "<speak>Define function <emphasis>greet</emphasis> <break time='0.5s'/> with <prosody rate='slow'>parameter</prosody> <emphasis>name</emphasis> <break time='0.5s'/> and <prosody rate='slow'>return</prosody> Hello name.</speak>",
+    code: `def greet(name):\n    return f\"Hello, {name}!\"`,
+    runtime: "Python interpreter, Jupyter Notebook",
+    test: (src) => {
+      const issues = [];
+      if (!/def\s+greet\s*\(/.test(src)) issues.push("missing def greet(");
+      if (!/return/.test(src)) issues.push("missing return");
+      if ((src.match(/\"/g) || []).length % 2 !== 0 && (src.match(/'/g) || []).length % 2 !== 0)
+        issues.push("possible unbalanced quotes");
+      if (/f\"Hello, \{name\}!\"/.test(src) || /f'Hello, \{name\}!'/.test(src) || /f\"Hello, \{name\}!\"/.test(src))
+        return { pass: issues.length === 0, issues };
+      if (!/Hello/.test(src)) issues.push("greeting text missing");
+      return { pass: issues.length === 0, issues };
+    }
+  },
+  {
+    id: "json",
+    language: "JSON",
+    voice: "<speak>JSON object with function greet <break time='0.5s'/> <prosody rate='slow'>parameter</prosody> name <break time='0.5s'/> and <prosody rate='slow'>return</prosody> Hello name.</speak>",
+    code: `{\n  \"function\": \"greet\",\n  \"parameter\": \"name\",\n  \"return\": \"Hello, {name}!\"\n}`,
+    runtime: "Data configuration, parse in any language",
+    test: (src) => {
+      try {
+        const obj = JSON.parse(src);
+        const issues = [];
+        if (obj.function !== "greet") issues.push("function must be greet");
+        if (!obj.parameter) issues.push("parameter missing");
+        if (!obj.return) issues.push("return missing");
+        return { pass: issues.length === 0, issues };
+      } catch (e) {
+        return { pass: false, issues: ["JSON parse error: " + e.message] };
+      }
+    }
+  },
+  {
+    id: "java",
+    language: "Java",
+    voice: "<speak>Public class <emphasis>Greeter</emphasis> <break time='0.5s'/> with static method <emphasis>greet</emphasis> <break time='0.5s'/> that <prosody rate='slow'>returns</prosody> Hello plus name.</speak>",
+    code: `public class Greeter {\n    public static String greet(String name) {\n        return \"Hello, \" + name + \"!\";\n    }\n}`,
+    runtime: "Java compiler (javac), JVM",
+    test: (src) => {
+      const issues = [];
+      if (!/public\s+class\s+Greeter/.test(src)) issues.push("missing public class Greeter");
+      if (!/static\s+String\s+greet\s*\(/.test(src)) issues.push("missing static String greet(");
+      if (!/return/.test(src)) issues.push("missing return");
+      const open = (src.match(/\{/g) || []).length;
+      const close = (src.match(/\}/g) || []).length;
+      if (open !== close) issues.push("unbalanced braces { }");
+      return { pass: issues.length === 0, issues };
+    }
+  },
+  {
+    id: "bash",
+    language: "Bash",
+    voice: "<speak>Echo Hello <break time='0.5s'/> user variable.</speak>",
+    code: `echo \"Hello, $USER!\"`,
+    runtime: "Linux/macOS terminal, Git Bash, WSL",
+    test: (src) => {
+      const issues = [];
+      if (!/^\s*echo\b/.test(src)) issues.push("must start with echo");
+      if (!/\$USER|\$\{USER\}/.test(src)) issues.push("missing $USER");
+      return { pass: issues.length === 0, issues };
+    }
+  },
+  {
+    id: "mermaid",
+    language: "Mermaid",
+    voice: "<speak>A flowchart starting at <emphasis>Start</emphasis> <break time='0.5s'/> checks if a name is provided <break time='0.5s'/> then prints Hello name if yes <break time='0.5s'/> otherwise asks for a name.</speak>",
+    code: `flowchart TD\n    A[Start] --> B{Is name provided?}\n    B -->|Yes| C[Print Hello, name!]\n    B -->|No| D[Ask for name]`,
+    runtime: "Markdown renderers with Mermaid support",
+    test: (src) => {
+      const issues = [];
+      if (!/flowchart\s+TD/.test(src)) issues.push("missing flowchart TD");
+      if (!/A\[Start\]/.test(src)) issues.push("missing Start node");
+      if (!/-->/.test(src)) issues.push("missing edge -->");
+      return { pass: issues.length === 0, issues };
+    }
+  },
+  {
+    id: "plaintext",
+    language: "Plain Text",
+    voice: "<speak>Function greet <break time='0.5s'/> takes a name and <prosody rate='slow'>returns</prosody> a greeting.</speak>",
+    code: `Function greet takes a name and returns a greeting.`,
+    runtime: "Non-executable; readable anywhere",
+    test: (src) => {
+      const issues = [];
+      if (!/greet/i.test(src)) issues.push("must mention greet");
+      if (!/name/i.test(src)) issues.push("must mention name");
+      return { pass: issues.length === 0, issues };
+    }
+  }
+];
+
+function escapeHtml(s) {
+  return s.replace(/&/g,"&").replace(/</g,"<").replace(/>/g,">");
+}
+
+function render() {
+  const root = document.getElementById("root");
+  root.innerHTML = "";
+  examples.forEach((ex, idx) => {
+    const det = document.createElement("details");
+    det.className = "example";
+    det.open = idx === 0;
+
+    const sum = document.createElement("summary");
+    sum.innerHTML = `<span>${ex.language} Example</span>`;
+    det.appendChild(sum);
+
+    const body = document.createElement("div");
+    body.className = "body";
+
+    // tabs
+    const tabs = document.createElement("div");
+    tabs.className = "tabs";
+    ["Visual", "Voice (SSML)", "JSON"].forEach((label, t) => {
+      const btn = document.createElement("button");
+      btn.className = "tab" + (t === 0 ? " active" : "");
+      btn.textContent = label;
+      btn.onclick = () => {
+        tabs.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        body.querySelectorAll(".panel").forEach((p, i) => p.classList.toggle("active", i === t));
+      };
+      tabs.appendChild(btn);
+    });
+    body.appendChild(tabs);
+
+    // Visual panel
+    const pVis = document.createElement("div");
+    pVis.className = "panel active";
+    const pre = document.createElement("pre");
+    pre.textContent = ex.code;
+    pVis.appendChild(pre);
+    const rt = document.createElement("div");
+    rt.className = "runtime";
+    rt.textContent = "Runtime: " + ex.runtime;
+    pVis.appendChild(rt);
+    body.appendChild(pVis);
+
+    // Voice panel
+    const pVoice = document.createElement("div");
+    pVoice.className = "panel";
+    const preV = document.createElement("pre");
+    preV.className = "ssml";
+    preV.textContent = ex.voice;
+    pVoice.appendChild(preV);
+    body.appendChild(pVoice);
+
+    // JSON panel
+    const pJson = document.createElement("div");
+    pJson.className = "panel";
+    const ui = { language: ex.language, voice: ex.voice, code: ex.code, runtime: ex.runtime };
+    const preJ = document.createElement("pre");
+    preJ.className = "json";
+    preJ.textContent = JSON.stringify(ui, null, 2);
+    pJson.appendChild(preJ);
+    body.appendChild(pJson);
+
+    // Test bar
+    const bar = document.createElement("div");
+    bar.className = "test-bar";
+    const badge = document.createElement("span");
+    badge.className = "badge pending";
+    badge.textContent = "PENDING";
+    bar.appendChild(badge);
+
+    const runBtn = document.createElement("button");
+    runBtn.className = "action";
+    runBtn.textContent = "Run Test";
+    bar.appendChild(runBtn);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.className = "action secondary";
+    copyBtn.textContent = "Copy corrected code";
+    copyBtn.style.display = "none";
+    bar.appendChild(copyBtn);
+
+    const correctBox = document.createElement("div");
+    correctBox.className = "correct-box";
+    const ta = document.createElement("textarea");
+    ta.className = "correct";
+    ta.value = ex.code;
+    correctBox.appendChild(ta);
+
+    const retestBtn = document.createElement("button");
+    retestBtn.className = "action";
+    retestBtn.textContent = "Re-test corrected code";
+    retestBtn.style.marginTop = "8px";
+    correctBox.appendChild(retestBtn);
+
+    body.appendChild(bar);
+    body.appendChild(correctBox);
+
+    function applyResult(result, source) {
+      if (result.pass) {
+        badge.className = "badge pass";
+        badge.textContent = "PASS";
+        correctBox.classList.remove("visible");
+        copyBtn.style.display = "none";
+        pre.textContent = source;
+        ex.code = source;
+      } else {
+        badge.className = "badge fail";
+        badge.textContent = "FAIL: " + result.issues.join("; ");
+        correctBox.classList.add("visible");
+        ta.value = source;
+        copyBtn.style.display = "inline-block";
+      }
+    }
+
+    runBtn.onclick = () => {
+      const result = ex.test(ex.code);
+      applyResult(result, ex.code);
+    };
+
+    retestBtn.onclick = () => {
+      const corrected = ta.value;
+      const result = ex.test(corrected);
+      applyResult(result, corrected);
+    };
+
+    copyBtn.onclick = () => {
+      const text = ta.value;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          copyBtn.textContent = "Copied";
+          setTimeout(() => copyBtn.textContent = "Copy corrected code", 1500);
+        });
+      } else {
+        ta.select();
+        document.execCommand("copy");
+        copyBtn.textContent = "Copied";
+        setTimeout(() => copyBtn.textContent = "Copy corrected code", 1500);
+      }
+    };
+
+    det.appendChild(body);
+    root.appendChild(det);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
