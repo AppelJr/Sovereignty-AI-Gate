@@ -1,0 +1,49 @@
+{
+  "schema_version": "sovereignty.chain-of-command.consumer.v1",
+  "repository": "AppelJr/Sovereignty-AI-Gate",
+  "integration_role": "authority",
+  "contract_owner": "AppelJr/Sovereignty-AI-Studio_v1.0.1",
+  "canonical_implementation_ref": "agent/chain-of-command-heavy-judge-20261107",
+  "consumer_branch": "agent/chain-of-command-consumer-20261107",
+  "integration_status": "DECLARED",
+  "test_status": "NOT_RUN",
+  "contract_summary": "Gate proof issuer/verifier",
+  "responsibility": "Issues owner/device/task/scope/policy-bound authorization proofs. Consumers MUST verify signatures, expiry, owner, task and scope. No downstream route or council vote can mint authority.",
+  "inbound_contract": {
+    "required_fields": [
+      "request_id",
+      "task_id",
+      "owner_id",
+      "device_id",
+      "scope",
+      "policy_hash",
+      "route_id"
+    ],
+    "authorization": "verified Sovereignty Gate proof required before protected work"
+  },
+  "outbound_contract": {
+    "permitted_fields": [
+      "judge_verdict_id",
+      "output_hash",
+      "signature_ref",
+      "scar_event_id",
+      "repmhl_record_id",
+      "status"
+    ],
+    "release_rule": "PASS only; YANK means escrow and output withheld; REWRITE requires full revalidation"
+  },
+  "invariants": [
+    "Orchestrator is not authority",
+    "Council votes are not authorization",
+    "Voice is not identity",
+    "No component may bypass the pre-route Gate or post-judge release Gate",
+    "SCAR/REPMHL evidence failure blocks release",
+    "No secrets or raw credentials in audit events"
+  ],
+  "evidence": {
+    "source_repository_root_inspected": true,
+    "adapter_implemented": false,
+    "cross_repository_test_executed": false,
+    "note": "This declaration records the repository's integration boundary; it does not claim executable wiring."
+  }
+}
