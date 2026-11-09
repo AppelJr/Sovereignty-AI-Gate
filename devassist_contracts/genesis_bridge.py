@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from .contracts import GateAuthorization, RouteDecision, TaskEnvelope, decide_route
 
@@ -59,10 +59,27 @@ def decide_genesis_handoff(
     *,
     gate_authorization: GateAuthorization | None,
     requested_route: str = "runtime_local",
+    authorization_verifier: Callable[[GateAuthorization, TaskEnvelope], bool] | None = None,
 ) -> RouteDecision:
-    """Executing routes require a separately issued, task-bound Gate token."""
+    """Executing routes require a cryptographically verified Gate receipt.
+
+    GateAuthorization is a contract object, not a signature. The injected
+    verifier must validate the signed receipt/issuer out-of-band and bind it
+    to this exact task. Missing verifier means DENY.
+    """
+    if gate_authorization is None or authorization_verifier is None:
+        verified_authorization = None
+    else:
+        try:
+            verified_authorization = (
+                gate_authorization
+                if authorization_verifier(gate_authorization, envelope) is True
+                else None
+            )
+        except Exception:
+            verified_authorization = None
     return decide_route(
         envelope=envelope,
-        auth=gate_authorization,
+        auth=verified_authorization,
         requested_route=requested_route,
     )
