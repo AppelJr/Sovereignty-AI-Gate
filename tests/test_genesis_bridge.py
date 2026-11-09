@@ -64,5 +64,28 @@ def test_wrong_task_gate_authorization_denies_execution():
 def test_task_bound_gate_authorization_allows_local_route():
     mapped = adapt_genesis_envelope(genesis_dict())
     token = GateAuthorization("auth-1", mapped.task_id, True, 9999999999, "gate")
-    decision = decide_genesis_handoff(mapped, gate_authorization=token)
+    decision = decide_genesis_handoff(
+        mapped,
+        gate_authorization=token,
+        authorization_verifier=lambda receipt, task: (
+            receipt.auth_id == "auth-1" and receipt.task_id == task.task_id
+        ),
+    )
     assert decision.route == "runtime_local"
+
+
+def test_gate_receipt_without_crypto_verifier_is_denied():
+    mapped = adapt_genesis_envelope(genesis_dict())
+    token = GateAuthorization("auth-1", mapped.task_id, True, 9999999999, "gate")
+    decision = decide_genesis_handoff(mapped, gate_authorization=token)
+    assert decision.route == "deny"
+
+
+def test_gate_receipt_verifier_failure_is_denied():
+    mapped = adapt_genesis_envelope(genesis_dict())
+    token = GateAuthorization("auth-1", mapped.task_id, True, 9999999999, "gate")
+    decision = decide_genesis_handoff(
+        mapped, gate_authorization=token,
+        authorization_verifier=lambda _receipt, _task: False,
+    )
+    assert decision.route == "deny"
