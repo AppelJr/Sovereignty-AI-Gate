@@ -5,19 +5,26 @@ on:
     branches: [main, master]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install
+      - name: Install test runner
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          if [ -f pyproject.toml ]; then pip install -e . || true; fi
-      - name: Test
-        run: pytest -q || true
+          python -m pip install --disable-pip-version-check --upgrade pip
+          python -m pip install --disable-pip-version-check pytest
+      - name: Run maintained contract and Genesis adapter tests
+        run: |
+          python -m pytest -q \
+            tests/test_devassist_contracts.py \
+            tests/test_genesis_adapter.py \
+            tests/test_genesis_bridge.py
