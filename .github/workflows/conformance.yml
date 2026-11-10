@@ -4,23 +4,24 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   conformance:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install deps
+      - name: Install test runner
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-      - name: Run conformance
+          python -m pip install --disable-pip-version-check --upgrade pip
+          python -m pip install --disable-pip-version-check pytest
+      - name: Run RFC conformance tests
         run: |
-          if [ -f scripts/run_conformance.sh ]; then
-            bash scripts/run_conformance.sh
-          else
-            pytest tests/conformance -q || true
-          fi
+          test -n "$(find RFC -maxdepth 1 -type f -name 'test_rfc*.py' -print -quit)"
+          python -m pytest -q RFC/test_rfc*.py
