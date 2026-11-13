@@ -1,0 +1,6 @@
+cryptography==50.0.2
+pydantic==2.14.1
+pytest==9.2.0
+pytest-cov==7.1.0
+jsonschema==4.26.0
+PyYAML==6.0.3
