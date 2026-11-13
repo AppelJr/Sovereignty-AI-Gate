@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "bundle_id": "fixture-import-001",
+  "created_by": "user:bob",
+  "created_at": "2026-01-01T00:00:00+00:00",
+  "payload": {
+    "ledger_version": "1.0",
+    "ledger_hash": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "records": []
+  },
+  "payload_hash": "c1766bd36fe9d4fe61ebb62a45f1f85bfef01c0606217d84561ccd0bfe6a4f7488f6c3c718f5cab0cd54cfadaa1de16773b55baabe36ff9b649d50d056297b95",
+  "signature": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

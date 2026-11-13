@@ -18,13 +18,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install test runner
+      - name: Install SIA package and test dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
-          python -m pip install --disable-pip-version-check pytest
-      - name: Run maintained contract and Genesis adapter tests
+          python -m pip install --disable-pip-version-check -e ".[dev]"
+      - name: Run maintained contract, Genesis adapter, and RFC tests
         run: |
           python -m pytest -q \
             tests/test_devassist_contracts.py \
             tests/test_genesis_adapter.py \
-            tests/test_genesis_bridge.py
+            tests/test_genesis_bridge.py \
+            RFC/test_rfc*.py

@@ -17,10 +17,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install test runner
+      - name: Install SIA package and test dependencies
         run: |
           python -m pip install --disable-pip-version-check --upgrade pip
-          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check -e ".[dev]"
       - name: Run RFC conformance tests
         run: |
           test -n "$(find RFC -maxdepth 1 -type f -name 'test_rfc*.py' -print -quit)"

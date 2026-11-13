@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "token_id": "fixture-delegation-001",
+  "grantor_id": "user:alice",
+  "grantee_id": "model:gpt4",
+  "scope": [
+    "memory.read"
+  ],
+  "issued_at": "2026-01-01T00:00:00+00:00",
+  "expires_at": null,
+  "depth": 0,
+  "revoked": false,
+  "parent_id": null
+}

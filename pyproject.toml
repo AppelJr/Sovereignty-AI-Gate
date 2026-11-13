@@ -1,8 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "sovereignty-ai-gate"
 version = "0.1.0"
-description = "Sovereignty AI Gate"
-requires-python = ">=3.11"
+description = "User-rooted authority framework for deterministic, offline-first AI governance"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography==49.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.2.0",
+    "pytest-cov==7.1.0",
+    "jsonschema==4.26.0",
+]
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["src/sia"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 70
