@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "bundle_id": "fixture-export-001",
+  "created_by": "user:alice",
+  "created_at": "2026-01-01T00:00:00+00:00",
+  "payload": {
+    "boundaries": [],
+    "version": "0.1.0"
+  },
+  "payload_hash": "12886a4d83df0e2241b7c7348513f8df3975d5bc97584eaa64f6074e9ae074b42fbba8ddc07cba58d05231561756378481a6203146057374fbe5f549ee310728",
+  "signature": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
